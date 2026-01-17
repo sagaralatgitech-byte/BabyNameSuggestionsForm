@@ -239,7 +239,7 @@
 
         <div class="info-box">
             <strong>📊 Automatic Save to Google Sheets</strong>
-            Your suggestions will be automatically saved to our Google Sheet. All data is collected centrally!
+            Your suggestions will be automatically saved to our Google Sheet. Each name will be saved as a separate entry!
         </div>
 
         <div class="success-message" id="successMessage">
@@ -294,7 +294,7 @@
             </div>
             <div id="additionalNames" class="additional-names"></div>
             
-            <button type="button" class="btn btn-secondary" onclick="addNameField()">
+            <button type="button" class="btn btn-secondary" id="addMoreBtn">
                 + Add More Names
             </button>
 
@@ -307,12 +307,18 @@
     <script>
         let additionalNameCount = 0;
 
+        // Add event listener for the "Add More Names" button
+        document.getElementById('addMoreBtn').addEventListener('click', function() {
+            addNameField();
+        });
+
         function addNameField() {
             additionalNameCount++;
             const container = document.getElementById('additionalNames');
             const nameDiv = document.createElement('div');
             nameDiv.className = 'name-suggestion';
             nameDiv.id = `additional-${additionalNameCount}`;
+            nameDiv.style.opacity = '0';
             nameDiv.innerHTML = `
                 <div class="form-group">
                     <label>Baby Name</label>
@@ -335,14 +341,19 @@
                 </button>
             `;
             container.appendChild(nameDiv);
-            nameDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Animate in
+            setTimeout(() => {
+                nameDiv.style.transition = 'opacity 0.3s';
+                nameDiv.style.opacity = '1';
+                nameDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 10);
         }
 
         function removeNameField(id) {
             const element = document.getElementById(`additional-${id}`);
             if (element) {
                 element.style.opacity = '0';
-                element.style.transform = 'scale(0.95)';
                 setTimeout(() => element.remove(), 300);
             }
         }
@@ -367,59 +378,93 @@
             const girlName = document.getElementById('girlName').value.trim();
             const girlMeaning = document.getElementById('girlMeaning').value.trim();
 
-            if (!boyName && !girlName) {
-                const additionalFields = document.querySelectorAll('.additional-name');
-                let hasAdditionalName = false;
-                additionalFields.forEach(field => {
-                    if (field.value.trim()) hasAdditionalName = true;
+            // Collect all names to submit
+            const namesToSubmit = [];
+
+            // Add boy name if provided
+            if (boyName) {
+                namesToSubmit.push({
+                    yourName: yourName,
+                    yourEmail: yourEmail,
+                    babyName: boyName,
+                    gender: 'Boy',
+                    meaning: boyMeaning
                 });
-                
-                if (!hasAdditionalName) {
-                    alert('Please provide at least one name suggestion!');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit Suggestions';
-                    return;
-                }
             }
 
-            const additionalNames = [];
-            const additionalFields = document.querySelectorAll('.name-suggestion');
-            
-            additionalFields.forEach((field, index) => {
-                if (index >= 2) {
-                    const name = field.querySelector('.additional-name')?.value.trim();
-                    const gender = field.querySelector('.additional-gender')?.value;
-                    const meaning = field.querySelector('.additional-meaning')?.value.trim();
-                    
-                    if (name) {
-                        additionalNames.push(`${name} (${gender || 'Not specified'}) - ${meaning || 'No meaning'}`);
-                    }
+            // Add girl name if provided
+            if (girlName) {
+                namesToSubmit.push({
+                    yourName: yourName,
+                    yourEmail: yourEmail,
+                    babyName: girlName,
+                    gender: 'Girl',
+                    meaning: girlMeaning
+                });
+            }
+
+            // Collect additional names
+            const additionalFields = document.querySelectorAll('#additionalNames .name-suggestion');
+            additionalFields.forEach((field) => {
+                const name = field.querySelector('.additional-name')?.value.trim();
+                const gender = field.querySelector('.additional-gender')?.value;
+                const meaning = field.querySelector('.additional-meaning')?.value.trim();
+                
+                if (name) {
+                    namesToSubmit.push({
+                        yourName: '',  // Blank for additional names as requested
+                        yourEmail: '',
+                        babyName: name,
+                        gender: gender || 'Not specified',
+                        meaning: meaning
+                    });
                 }
             });
 
-            const formData = new FormData();
-            formData.append('Timestamp', new Date().toLocaleString());
-            formData.append('Your Name', yourName);
-            formData.append('Your Email', yourEmail);
-            formData.append('Boy Name', boyName);
-            formData.append('Boy Meaning', boyMeaning);
-            formData.append('Girl Name', girlName);
-            formData.append('Girl Meaning', girlMeaning);
-            formData.append('Additional Names', additionalNames.join(' | '));
+            // Validate at least one name is provided
+            if (namesToSubmit.length === 0) {
+                alert('Please provide at least one name suggestion!');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Suggestions';
+                return;
+            }
 
             try {
-                // REPLACE WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
-                const scriptURL = https://script.google.com/macros/s/AKfycby9e2OaLvEPc_x805oswIl9BcxLUOSLs4u11KBNafbLCQiH1tXbaSRZYq78AA61Bhwz/exec;
+                const scriptURL = 'https://script.google.com/macros/s/AKfycby9e2OaLvEPc_x805oswIl9BcxLUOSLs4u11KBNafbLCQiH1tXbaSRZYq78AA61Bhwz/exec';
                 
-                const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: formData
-                });
+                let successCount = 0;
+                let errorCount = 0;
 
-                const result = await response.json();
+                // Submit each name as a separate row
+                for (const nameData of namesToSubmit) {
+                    const formData = new FormData();
+                    formData.append('Timestamp', new Date().toLocaleString());
+                    formData.append('Your Name', nameData.yourName);
+                    formData.append('Your Email', nameData.yourEmail);
+                    formData.append('Baby Name', nameData.babyName);
+                    formData.append('Gender', nameData.gender);
+                    formData.append('Meaning', nameData.meaning);
 
-                if (result.result === 'success') {
+                    try {
+                        const response = await fetch(scriptURL, {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'no-cors'  // Important for Google Apps Script
+                        });
+
+                        successCount++;
+                    } catch (error) {
+                        console.error('Error submitting:', error);
+                        errorCount++;
+                    }
+                }
+
+                // Show success message if at least one submission succeeded
+                if (successCount > 0) {
+                    successMsg.textContent = `✓ ${successCount} name${successCount > 1 ? 's' : ''} saved successfully! Thank you so much! 💙💗`;
                     successMsg.style.display = 'block';
+                    
+                    // Reset form
                     document.getElementById('nameForm').reset();
                     document.getElementById('additionalNames').innerHTML = '';
                     additionalNameCount = 0;
@@ -428,11 +473,12 @@
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }, 100);
                 } else {
-                    throw new Error('Submission failed');
+                    throw new Error('All submissions failed');
                 }
+
             } catch (error) {
                 console.error('Error:', error);
-                errorMsg.textContent = '❌ Error saving to Google Sheets. Please try again.';
+                errorMsg.textContent = '❌ Error saving to Google Sheets. Please try again or contact us directly.';
                 errorMsg.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
