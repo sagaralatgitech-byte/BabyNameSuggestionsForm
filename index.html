@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Name Suggestions 👶</title>
+    <meta name="description" content="Share your baby name suggestions with us!">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #ff4757;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .name-suggestion {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e8ebff;
+            transition: all 0.3s;
+        }
+
+        .name-suggestion:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            width: 100%;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9ff;
+        }
+
+        .btn-remove {
+            background: #ff4757;
+            color: white;
+            padding: 8px 16px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .btn-remove:hover {
+            background: #ee5a6f;
+            transform: scale(0.98);
+        }
+
+        .success-message, .error-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .additional-names {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #2e7d32;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👶 Baby Name Suggestions</h1>
+        <p class="subtitle">Help us choose the perfect name for our little one!</p>
+
+        <div class="info-box">
+            <strong>📊 Automatic Save to Google Sheets</strong>
+            Your suggestions will be automatically saved to our Google Sheet. All data is collected centrally!
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✓ Your suggestions have been saved successfully! Thank you so much! 💙💗
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ❌ Oops! Something went wrong. Please try again or contact us directly.
+        </div>
+
+        <form id="nameForm">
+            <div class="form-group">
+                <label for="yourName">Your Name <span class="required">*</span></label>
+                <input type="text" id="yourName" name="yourName" required placeholder="Enter your name" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label for="yourEmail">Your Email (optional)</label>
+                <input type="email" id="yourEmail" name="yourEmail" placeholder="your.email@example.com" maxlength="100">
+            </div>
+
+            <div class="section-title">
+                <span>💙 Boy Name Suggestion</span>
+            </div>
+            <div class="name-suggestion">
+                <div class="form-group">
+                    <label for="boyName">Boy Name</label>
+                    <input type="text" id="boyName" name="boyName" placeholder="Suggest a name for a boy" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="boyMeaning">Meaning</label>
+                    <textarea id="boyMeaning" name="boyMeaning" placeholder="What does this name mean?" maxlength="500"></textarea>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>💗 Girl Name Suggestion</span>
+            </div>
+            <div class="name-suggestion">
+                <div class="form-group">
+                    <label for="girlName">Girl Name</label>
+                    <input type="text" id="girlName" name="girlName" placeholder="Suggest a name for a girl" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="girlMeaning">Meaning</label>
+                    <textarea id="girlMeaning" name="girlMeaning" placeholder="What does this name mean?" maxlength="500"></textarea>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>➕ Additional Name Suggestions</span>
+            </div>
+            <div id="additionalNames" class="additional-names"></div>
+            
+            <button type="button" class="btn btn-secondary" onclick="addNameField()">
+                + Add More Names
+            </button>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                Submit Suggestions
+            </button>
+        </form>
+    </div>
+
+    <script>
+        let additionalNameCount = 0;
+
+        function addNameField() {
+            additionalNameCount++;
+            const container = document.getElementById('additionalNames');
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'name-suggestion';
+            nameDiv.id = `additional-${additionalNameCount}`;
+            nameDiv.innerHTML = `
+                <div class="form-group">
+                    <label>Baby Name</label>
+                    <input type="text" placeholder="Enter name" class="additional-name" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select class="additional-gender">
+                        <option value="">Select gender</option>
+                        <option value="Boy">Boy</option>
+                        <option value="Girl">Girl</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Meaning</label>
+                    <textarea placeholder="What does this name mean?" class="additional-meaning" maxlength="500"></textarea>
+                </div>
+                <button type="button" class="btn btn-remove" onclick="removeNameField(${additionalNameCount})">
+                    ✕ Remove
+                </button>
+            `;
+            container.appendChild(nameDiv);
+            nameDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function removeNameField(id) {
+            const element = document.getElementById(`additional-${id}`);
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0.95)';
+                setTimeout(() => element.remove(), 300);
+            }
+        }
+
+        document.getElementById('nameForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Saving to Google Sheets...';
+            
+            const yourName = document.getElementById('yourName').value.trim();
+            const yourEmail = document.getElementById('yourEmail').value.trim();
+            const boyName = document.getElementById('boyName').value.trim();
+            const boyMeaning = document.getElementById('boyMeaning').value.trim();
+            const girlName = document.getElementById('girlName').value.trim();
+            const girlMeaning = document.getElementById('girlMeaning').value.trim();
+
+            if (!boyName && !girlName) {
+                const additionalFields = document.querySelectorAll('.additional-name');
+                let hasAdditionalName = false;
+                additionalFields.forEach(field => {
+                    if (field.value.trim()) hasAdditionalName = true;
+                });
+                
+                if (!hasAdditionalName) {
+                    alert('Please provide at least one name suggestion!');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Suggestions';
+                    return;
+                }
+            }
+
+            const additionalNames = [];
+            const additionalFields = document.querySelectorAll('.name-suggestion');
+            
+            additionalFields.forEach((field, index) => {
+                if (index >= 2) {
+                    const name = field.querySelector('.additional-name')?.value.trim();
+                    const gender = field.querySelector('.additional-gender')?.value;
+                    const meaning = field.querySelector('.additional-meaning')?.value.trim();
+                    
+                    if (name) {
+                        additionalNames.push(`${name} (${gender || 'Not specified'}) - ${meaning || 'No meaning'}`);
+                    }
+                }
+            });
+
+            const formData = new FormData();
+            formData.append('Timestamp', new Date().toLocaleString());
+            formData.append('Your Name', yourName);
+            formData.append('Your Email', yourEmail);
+            formData.append('Boy Name', boyName);
+            formData.append('Boy Meaning', boyMeaning);
+            formData.append('Girl Name', girlName);
+            formData.append('Girl Meaning', girlMeaning);
+            formData.append('Additional Names', additionalNames.join(' | '));
+
+            try {
+                // REPLACE WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+                const scriptURL = https://script.google.com/macros/s/AKfycby9e2OaLvEPc_x805oswIl9BcxLUOSLs4u11KBNafbLCQiH1tXbaSRZYq78AA61Bhwz/exec;
+                
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    successMsg.style.display = 'block';
+                    document.getElementById('nameForm').reset();
+                    document.getElementById('additionalNames').innerHTML = '';
+                    additionalNameCount = 0;
+                    
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorMsg.textContent = '❌ Error saving to Google Sheets. Please try again.';
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Suggestions';
+            }
+        });
+    </script>
+</body>
+</html>
