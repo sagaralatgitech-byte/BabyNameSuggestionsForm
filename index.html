@@ -239,7 +239,7 @@
 
         <div class="info-box">
             <strong>📊 Automatic Save to Google Sheets</strong>
-            Your suggestions will be automatically saved to our Google Sheet. Each name will be saved as a separate entry!
+            Your suggestions will be automatically saved. Each additional name creates a new row with your name left blank!
         </div>
 
         <div class="success-message" id="successMessage">
@@ -307,7 +307,6 @@
     <script>
         let additionalNameCount = 0;
 
-        // Add event listener for the "Add More Names" button
         document.getElementById('addMoreBtn').addEventListener('click', function() {
             addNameField();
         });
@@ -342,7 +341,6 @@
             `;
             container.appendChild(nameDiv);
             
-            // Animate in
             setTimeout(() => {
                 nameDiv.style.transition = 'opacity 0.3s';
                 nameDiv.style.opacity = '1';
@@ -378,32 +376,8 @@
             const girlName = document.getElementById('girlName').value.trim();
             const girlMeaning = document.getElementById('girlMeaning').value.trim();
 
-            // Collect all names to submit
-            const namesToSubmit = [];
-
-            // Add boy name if provided
-            if (boyName) {
-                namesToSubmit.push({
-                    yourName: yourName,
-                    yourEmail: yourEmail,
-                    babyName: boyName,
-                    gender: 'Boy',
-                    meaning: boyMeaning
-                });
-            }
-
-            // Add girl name if provided
-            if (girlName) {
-                namesToSubmit.push({
-                    yourName: yourName,
-                    yourEmail: yourEmail,
-                    babyName: girlName,
-                    gender: 'Girl',
-                    meaning: girlMeaning
-                });
-            }
-
             // Collect additional names
+            const additionalNames = [];
             const additionalFields = document.querySelectorAll('#additionalNames .name-suggestion');
             additionalFields.forEach((field) => {
                 const name = field.querySelector('.additional-name')?.value.trim();
@@ -411,74 +385,103 @@
                 const meaning = field.querySelector('.additional-meaning')?.value.trim();
                 
                 if (name) {
-                    namesToSubmit.push({
-                        yourName: '',  // Blank for additional names as requested
-                        yourEmail: '',
-                        babyName: name,
+                    additionalNames.push({
+                        name: name,
                         gender: gender || 'Not specified',
                         meaning: meaning
                     });
                 }
             });
 
-            // Validate at least one name is provided
-            if (namesToSubmit.length === 0) {
+            // Validate at least one name
+            if (!boyName && !girlName && additionalNames.length === 0) {
                 alert('Please provide at least one name suggestion!');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Suggestions';
                 return;
             }
 
+            const scriptURL = 'https://script.google.com/macros/s/AKfycby9e2OaLvEPc_x805oswIl9BcxLUOSLs4u11KBNafbLCQiH1tXbaSRZYq78AA61Bhwz/exec';
+            
+            let totalSubmissions = 0;
+            let successCount = 0;
+
             try {
-                const scriptURL = 'https://script.google.com/macros/s/AKfycby9e2OaLvEPc_x805oswIl9BcxLUOSLs4u11KBNafbLCQiH1tXbaSRZYq78AA61Bhwz/exec';
+                // Submit main entry with boy and girl names
+                const mainFormData = new FormData();
+                mainFormData.append('Timestamp', new Date().toLocaleString());
+                mainFormData.append('Your Name', yourName);
+                mainFormData.append('Your Email', yourEmail);
+                mainFormData.append('Boy Name', boyName);
+                mainFormData.append('Boy Meaning', boyMeaning);
+                mainFormData.append('Girl Name', girlName);
+                mainFormData.append('Girl Meaning', girlMeaning);
                 
-                let successCount = 0;
-                let errorCount = 0;
+                // Add additional names as comma-separated list
+                const additionalNamesText = additionalNames.map(n => 
+                    `${n.name} (${n.gender}) - ${n.meaning}`
+                ).join('; ');
+                mainFormData.append('Additional Names', additionalNamesText);
 
-                // Submit each name as a separate row
-                for (const nameData of namesToSubmit) {
-                    const formData = new FormData();
-                    formData.append('Timestamp', new Date().toLocaleString());
-                    formData.append('Your Name', nameData.yourName);
-                    formData.append('Your Email', nameData.yourEmail);
-                    formData.append('Baby Name', nameData.babyName);
-                    formData.append('Gender', nameData.gender);
-                    formData.append('Meaning', nameData.meaning);
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: mainFormData,
+                    mode: 'no-cors'
+                });
 
-                    try {
-                        const response = await fetch(scriptURL, {
-                            method: 'POST',
-                            body: formData,
-                            mode: 'no-cors'  // Important for Google Apps Script
-                        });
+                totalSubmissions++;
+                successCount++;
 
-                        successCount++;
-                    } catch (error) {
-                        console.error('Error submitting:', error);
-                        errorCount++;
+                // Submit each additional name as separate row with blank "Your Name"
+                for (const addName of additionalNames) {
+                    const addFormData = new FormData();
+                    addFormData.append('Timestamp', new Date().toLocaleString());
+                    addFormData.append('Your Name', '');  // Blank as requested
+                    addFormData.append('Your Email', '');
+                    
+                    // Put additional name in appropriate column based on gender
+                    if (addName.gender === 'Boy') {
+                        addFormData.append('Boy Name', addName.name);
+                        addFormData.append('Boy Meaning', addName.meaning);
+                        addFormData.append('Girl Name', '');
+                        addFormData.append('Girl Meaning', '');
+                    } else if (addName.gender === 'Girl') {
+                        addFormData.append('Boy Name', '');
+                        addFormData.append('Boy Meaning', '');
+                        addFormData.append('Girl Name', addName.name);
+                        addFormData.append('Girl Meaning', addName.meaning);
+                    } else {
+                        addFormData.append('Boy Name', addName.name);
+                        addFormData.append('Boy Meaning', addName.meaning);
+                        addFormData.append('Girl Name', '');
+                        addFormData.append('Girl Meaning', '');
                     }
+                    addFormData.append('Additional Names', '');
+
+                    await fetch(scriptURL, {
+                        method: 'POST',
+                        body: addFormData,
+                        mode: 'no-cors'
+                    });
+
+                    totalSubmissions++;
+                    successCount++;
                 }
 
-                // Show success message if at least one submission succeeded
-                if (successCount > 0) {
-                    successMsg.textContent = `✓ ${successCount} name${successCount > 1 ? 's' : ''} saved successfully! Thank you so much! 💙💗`;
-                    successMsg.style.display = 'block';
-                    
-                    // Reset form
-                    document.getElementById('nameForm').reset();
-                    document.getElementById('additionalNames').innerHTML = '';
-                    additionalNameCount = 0;
-                    
-                    setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }, 100);
-                } else {
-                    throw new Error('All submissions failed');
-                }
+                successMsg.textContent = `✓ Successfully saved ${totalSubmissions} row${totalSubmissions > 1 ? 's' : ''} to Google Sheets! Thank you! 💙💗`;
+                successMsg.style.display = 'block';
+                
+                document.getElementById('nameForm').reset();
+                document.getElementById('additionalNames').innerHTML = '';
+                additionalNameCount = 0;
+                
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
 
             } catch (error) {
                 console.error('Error:', error);
-                errorMsg.textContent = '❌ Error saving to Google Sheets. Please try again or contact us directly.';
+                errorMsg.textContent = '❌ Error saving to Google Sheets. Please try again.';
                 errorMsg.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
